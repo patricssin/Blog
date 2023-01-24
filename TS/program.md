@@ -38,5 +38,3 @@ const len = (mystery as string).length
 
 
 
-
-

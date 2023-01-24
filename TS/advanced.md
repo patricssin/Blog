@@ -311,5 +311,3 @@ function makeNoise(animal: Cat | Dog): string {
 
 
 
-
-

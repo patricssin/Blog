@@ -1,4 +1,4 @@
-> TS可以帮助在程序运行之前发现errors
+### TS可以帮助在程序运行之前发现errors
 
 
 #### 安装和设置
@@ -113,7 +113,80 @@
 - 用一个collection容纳所有的values，变量或参数必须是这个collections里面的某一个item，let zero = 0, 这里zero被定义为0 forever
 - type DayOfWeek = 1|2|3|4|5, let today: DayOfWeek = 1, today = 't'  t并不在collections中会报错
 
+------------------------
+[参考](https://github.com/mqyqingfeng/Blog/issues/229)
 
+字面量类型本身并没有什么太大用，如果结合联合类型，就显得有用多了。举个例子，当函数只能传入一些固定的字符串时：
+```
+function printText(s: string, alignment: "left" | "right" | "center") {
+  // ...
+}
+printText("Hello, world", "left");
+printText("G'day, mate", "centre");
+// Argument of type '"centre"' is not assignable to parameter of type '"left" | "right" | "center"'.
+```
+数字字面量类型也是一样的：
+```
+function compare(a: string, b: string): -1 | 0 | 1 {
+  return a === b ? 0 : a > b ? 1 : -1;
+}
+```
+当然了，你也可以跟非字面量类型联合：
+```
+interface Options {
+  width: number;
+}
+function configure(x: Options | "auto") {
+  // ...
+}
+configure({ width: 100 });
+configure("auto");
+configure("automatic");
+
+// Argument of type '"automatic"' is not assignable to parameter of type 'Options | "auto"'.
+```
+还有一种字面量类型，布尔字面量。因为只有两种布尔字面量类型， true 和 false ，类型 boolean 实际上就是联合类型 true | false 的别名。
+
+#### 字面量推断（Literal Inference）
+当你初始化变量为一个对象的时候，TypeScript 会假设这个对象的属性的值未来会被修改，举个例子，如果你写下这样的代码：
+```
+const obj = { counter: 0 };
+if (someCondition) {
+  obj.counter = 1;
+}
+```
+TypeScript 并不会认为 obj.counter 之前是 0， 现在被赋值为 1 是一个错误。换句话说，obj.counter 必须是 number 类型，但不要求一定是 0，因为类型可以决定读写行为。
+
+这也同样应用于字符串:
+```
+declare function handleRequest(url: string, method: "GET" | "POST"): void;
+
+const req = { url: "https://example.com", method: "GET" };
+handleRequest(req.url, req.method);
+
+// Argument of type 'string' is not assignable to parameter of type '"GET" | "POST"'.
+```
+在上面这个例子里，req.method 被推断为 string ，而不是 "GET"，因为在创建 req 和 调用 handleRequest 函数之间，可能还有其他的代码，或许会将 req.method 赋值一个新字符串比如 "Guess" 。所以 TypeScript 就报错了。
+
+有两种方式可以解决：
+
+- 添加一个类型断言改变推断结果：
+```
+// Change 1:
+const req = { url: "https://example.com", method: "GET" as "GET" };
+// Change 2
+handleRequest(req.url, req.method as "GET");
+```
+修改 1 表示“我有意让 req.method 的类型为字面量类型 "GET"，这会阻止未来可能赋值为 "GUESS" 等字段”。修改 2 表示“我知道 req.method 的值是 "GET"”.
+
+- 你也可以使用 as const 把整个对象转为一个类型字面量：
+```
+const req = { url: "https://example.com", method: "GET" } as const;
+handleRequest(req.url, req.method);
+```
+as const 效果跟 const 类似，但是对类型系统而言，它可以确保所有的属性都被赋予一个字面量类型，而不是一个更通用的类型比如 string 或者 number 。
+
+----------------------------
 
 #### Tuples
 
@@ -183,7 +256,7 @@ interface Point {
 - tsc -w, 观察所有文件
 
 
-#### 一些基础配置
+#### configs
 
 - files，和compileroptions同级别，如果有设置，只有在files:[]中的文件才会被include
 - include, 另一种指定方式，默认**表示包含所有ts文件， ['src']表示src文件夹下面的所有ts文件，也可以是'src/filename'来制定文件夹下的文件
@@ -194,9 +267,7 @@ interface Point {
 - outDir，输出的目录，'./dist'
 - target，通常是'es5'
 - strict，一个捷径设置，不用自己手动去设置很多东东，直接设置为true，如果是false，那么会有下面多个控制对于一些错误使用是选择报错还是warning
-- noImplicitAny，没给传参数时报错or not
+- noImplicitAny，如果你没有指定一个类型，TypeScript 也不能从上下文推断出它的类型，编译器就会默认设置为 any 类型。如果你总是想避免这种情况，毕竟 TypeScript 对 any 不做类型检查，你可以开启编译项 noImplicitAny，当被隐式推断为 any 时，TypeScript 就会报错。
 - strickNullChecks，把null undefined向其他变量赋值时提醒or not
-
-
 
 

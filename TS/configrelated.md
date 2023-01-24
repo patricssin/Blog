@@ -1,4 +1,4 @@
-### Declarations 
+### type declarations 
 
 
 - XX.d.ts， 包含所有的type的定义和解释
@@ -65,7 +65,7 @@ ts-loader (中间人，帮忙run tsc将ts转为js再打包成bundle，除了ts�
 - output:{filename:'',path: **path.resolve**(..dirname, 'dist')}，
 - path.resolve是require的path包，传入的当前目录，和dist文件夹，当前目录是 node中的使用方法
 
-
+------------
 
 - sourceMap，方便本地debug，否则bundle文件是丑化的不方便debug
 - devTool: 'inline-source-map'
@@ -87,7 +87,5 @@ scripts: {
 - 当有hash时，每次打包出的都是新文件，需要一个即使clean的脚本，clear-webpack-plugin
 - npm install clear-webpack-plugin --save-dev
 - plugins: [new CleanWebpackPlugin()],这里的plugin可以添加多个webpack的plugin
-
-
 
 
